@@ -1,0 +1,4 @@
+# build script
+[defaults]
+compiler = "clang"
+language = "c"
