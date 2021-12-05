@@ -1,4 +1,14 @@
 # build script
+name = {}
+version = "0.0.1"
+
 [defaults]
-compiler = "clang"
-language = "c"
+compiler = {}
+language = {}
+options = ["-Wall", "-Wextra"]
+
+[debug]
+options = ["-g"]
+
+[release]
+options = ["-O2"]
