@@ -1,0 +1,12 @@
+{
+    "src":{"main.c":"c_main"},
+    "bin":{
+        "debug":{},
+        "release":{}
+    },
+    "include":{},
+    "libs":{},
+    "deps":{},
+    "gum.toml":"config",
+    ".gitignore":"gitignore"
+}

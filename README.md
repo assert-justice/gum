@@ -6,54 +6,52 @@ I made GUM because CMake is very complicated and ad-hoc and I was too stubborn t
 
 ### Create
 
-`create [name]`: create a new gum project. It creates a directory with the name specified, creates subdirectories, adds main.c and gum.toml.
+`create [name]`: Create a new gum project. It creates a directory with the name specified, builds a directory tree complete with template files, and adds source control.
 
-- `-c --compiler [str]`: specify a compiler for the project's use.
+- `-c --compiler [str]`: Specify a compiler for the project's use.
 
-- `-l --language [str]`: specify the project's language (`c` and `c++` are currently supported).
+- `-l --language [str]`: Specify the project's language (`c` and `c++` are currently supported).
 
-- `-h --head [str]`: specify the file extension used for header files.
+- `-h --head [str]`: Specify the file extension used for header files.
 
-- `-s -- src [str]`: specify the file extension used for source files.
+- `-s -- src [str]`: Specify the file extension used for source files.
 
-- `--vcs [str]`: specify the version control system for the project (`git` is currently supported).
+- `--vcs [str]`: Specify the version control system for the project (`none` and `git` is currently supported).
 
 ### Build
 
-`build`: compile an executable for the current platform
+`build`: Compile the project as an executable.
 
-- `-r -release`: compile using release settings.
+- `-r -release`: Compile using release settings.
 
-- `-f --full`: recompile all source files, do not use incremental builds.
+- `-f --full`: Recompile all source files, do not use incremental builds.
 
-- `-compile_libs`: recompile all libraries in the deps directory.
+- `--compile_libs`: Recompile all libraries in the deps directory.
 
-- `-a -all_targets`: compile to all configured targets. Not yet implemented.
+- `-a --all_targets`: Compile to all configured targets. Not yet implemented.
 
-- `--win --posx --gnu`: specify compile target if different than current machine. Not yet implemented.
+- `--win --posx --gnu`: Specify compile target if different than current machine. Not yet implemented.
 
-- `-o`: override default optimization level.
+- `-o`: Override the default optimization level.
 
 ### Run
 
-`run`: like build but runs the executable afterwards assuming no errors or warnings. All commands work identically.
+`run`: Builds and runs the project assuming no errors or warnings. All commands work identically.
 
 ### Install
 
-`install [url]`: clone a library into the deps folder and configure it.
+`install [url]`: Clone a library into the deps folder and configure it.
 
-- `-d -dll`: configure library to be used as a dll. Static is a default.
+- `-d -dll`: Configure library as dynamically linked. Static is a default.
 
-- `-m --manual`: headers should not be automatically placed in the project's include file. For pesky libraries with specific include instructions.
+- `-m --manual`: Indicates that headers should not be automatically placed in the project's include file. For pesky libraries with specific include instructions.
 
-- `--defer_build`: do not build on install.
+- `--defer_build`: Indicates that a library should not be built yet. Default is to build on install.
 
 ### Add Commit Push
 
 `acp [str]`: adds all changes, commits them with the given message, and pushes it to configured repo.
 
-### Script
-
-`script `
+### Add
 
 `add [name]`: adds a matching header / source file at `src/name`
