@@ -8,5 +8,6 @@
     "libs":{},
     "deps":{},
     "gum.toml":"config",
-    ".gitignore":"gitignore"
+    ".gitignore":"gitignore",
+    "README.md":"readme"
 }

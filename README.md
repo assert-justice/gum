@@ -24,7 +24,7 @@ I made GUM because CMake is very complicated and ad-hoc and I was too stubborn t
 
 - `-r -release`: Compile using release settings.
 
-- `-f --full`: Recompile all source files, do not use incremental builds.
+- `-f --full`: Recompile all source files, do not use incremental builds. Not yet implemented, all builds are full builds.
 
 - `--compile_libs`: Recompile all libraries in the deps directory.
 

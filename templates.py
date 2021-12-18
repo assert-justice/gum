@@ -11,10 +11,14 @@ src = "{src}"
 options = ["-Wall", "-Wextra"]
 
 [debug]
-optimization = "O0"
+optimization = "-O0"
 
 [release]
-optimization = "O2"
+optimization = "-O2"
+'''
+
+def readme(name):
+    return f'''# {name}
 '''
 
 def gitignore():
@@ -25,10 +29,25 @@ def gitignore():
 '''
 
 def c_main(name, time):
-    return f'''#include <stdio.h>
-// {name}
+    return f'''// {name}
 // created at: {time}
+
+#include <stdio.h>
 int main(){{
     printf("hello world!");
     return 0;
 }}'''
+
+def c_head(name):
+    name = name.upper()
+    return f'''#ifndef {name}
+#define {name}
+
+#endif
+'''
+
+def c_src(name):
+    return f'''#include "{name}"
+
+
+'''
