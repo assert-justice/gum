@@ -1,4 +1,5 @@
 import os,sys,platform,json
+import gum_config
 
 def grab_files(path, extension):
     # Find all files with a given extension in a subtree and return their paths.
@@ -117,7 +118,7 @@ def config_build(src, release_mode = False, target = "gnu"):
     add_queue = []
     if "defaults" in src:
         add_queue.append(src.pop("defaults"))
-    oss = ["win", "gnu", "osx"]
+    oss = gum_config.targets
     for o in oss:
         if o in src:
             val = src.pop(o)

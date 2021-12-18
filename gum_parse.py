@@ -1,18 +1,19 @@
 import argparse
+import gum_config
 
-def parse(create, build, run, install, acp, add, version):
-    parser = argparse.ArgumentParser(prog="gum", description="an app to play around with argparse")
-    parser.add_argument("-v", "--version", action="version", version=version)
+def parse(create, build, run, install, acp, add):
+    parser = argparse.ArgumentParser(prog="gum", description="A bad build system, built out of gum and twine.")
+    parser.add_argument("-v", "--version", action="version", version=gum_config.version)
     subparsers = parser.add_subparsers()
 
     create_parser = subparsers.add_parser("create", aliases=["c"], help="Create a new gum project. It creates a directory with the name specified, builds a directory tree complete with template files, and adds source control.")
     create_parser.set_defaults(func=create)
     create_parser.add_argument("name", help="The name of your new project")
-    create_parser.add_argument("-c", "--compiler", default="gcc", help="Specify a compiler for the project's use.")
-    create_parser.add_argument("-l", "--language", choices=["c", "c++"], default="c", help="Specify the project's language ('c' and 'c++' are currently supported).")
-    create_parser.add_argument("--header", choices=[".h", ".hpp"], default=".h", help="Specify the file extension used for header files.")
-    create_parser.add_argument("--src", choices=[".c", ".cpp"], default=".c", help="Specify the file extension used for source files.")
-    create_parser.add_argument("--vcs", choices=["git", "none"], default="git", help="Specify the version control system for the project ('none' and 'git' is currently supported).")
+    create_parser.add_argument("-c", "--compiler", choices=gum_config.compilers, default="gcc", help="Specify a compiler for the project's use.")
+    create_parser.add_argument("-l", "--language", choices=gum_config.languages, default="c", help="Specify the project's language ('c' and 'c++' are currently supported).")
+    create_parser.add_argument("--header", default=".h", help="Specify the file extension used for header files.")
+    create_parser.add_argument("--src", default=".c", help="Specify the file extension used for source files.")
+    create_parser.add_argument("--vcs", choices=gum_config.vcs, default="git", help="Specify the version control system for the project ('none' and 'git' is currently supported).")
 
     build_parser = subparsers.add_parser("build", aliases=["b"], help="Compile the project as an executable.")
     build_parser.set_defaults(func=build)
@@ -21,7 +22,7 @@ def parse(create, build, run, install, acp, add, version):
     build_parser.add_argument("--compile_libs", action="store_true", help="Recompile all libraries in the deps directory.")
     group = build_parser.add_mutually_exclusive_group()
     #group.add_argument("-a","--all", action="store_true", help="Compile to all configured targets. Not yet implemented.")
-    group.add_argument("-t","--target", choices=["win","osx","gnu"], help="Specify compile target if different than current machine.")
+    group.add_argument("-t","--target", choices=gum_config.targets, help="Specify compile target if different than current machine.")
     build_parser.add_argument("-o", type=int, choices=[0,1,2,3], help="Override the default optimization level.")
 
     run_parser = subparsers.add_parser("run", aliases=["r"], help="Builds and runs the project assuming no errors or warnings. All commands work identically.")
@@ -31,7 +32,7 @@ def parse(create, build, run, install, acp, add, version):
     run_parser.add_argument("--compile_libs", action="store_true", help="Recompile all libraries in the deps directory.")
     group = run_parser.add_mutually_exclusive_group()
     #group.add_argument("-a","--all", action="store_true", help="Compile to all configured targets.")
-    group.add_argument("-t","--target", choices=["win","osx","gnu"], help="Specify compile target if different than current machine.")
+    group.add_argument("-t","--target", choices=gum_config.targets, help="Specify compile target if different than current machine.")
     run_parser.add_argument("-o", type=int, choices=[0,1,2,3], help="Override the default optimization level.")
 
     install_parser = subparsers.add_parser("install", aliases=["i"], help="Clone a library into the deps folder and configure it.")

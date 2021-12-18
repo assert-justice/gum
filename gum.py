@@ -1,8 +1,8 @@
 import os,sys, subprocess, json, datetime
 import toml
-import gum_parse, gum_utils, templates
+import gum_parse, gum_utils, gum_config, gum_templates
 
-__version__ = "0.0.1"
+__version__ = gum_config.version
 
 class Gum():
     def __init__(self):
@@ -10,15 +10,15 @@ class Gum():
         # Load templates and default config.
         self.load_files()
         # Calls the parser.
-        gum_parse.parse(self.create, self.build, self.run, self.install, self.acp, self.add, __version__)
+        gum_parse.parse(self.create, self.build, self.run, self.install, self.acp, self.add)
         pass
     def create(self, args):
         print(args)
         temps = {
-            "config": lambda: templates.config(args["name"], args["compiler"], args["language"], args["header"], args["src"]),
-            "gitignore": templates.gitignore,
-            "c_main": lambda: templates.c_main(args["name"], datetime.date.today()),
-            "readme": lambda: templates.readme(args["name"])
+            "config": lambda: gum_templates.config(args["name"], args["compiler"], args["language"], args["header"], args["src"]),
+            "gitignore": gum_templates.gitignore,
+            "c_main": lambda: gum_templates.c_main(args["name"], datetime.date.today()),
+            "readme": lambda: gum_templates.readme(args["name"])
         }
         dirmap = self.dirmaps["project.json"]
         path = os.path.join(self.cwd, args["name"])
@@ -70,8 +70,8 @@ class Gum():
         s_ext = self.config["src"]
         h_name = f"{name}{h_ext}"
         s_name = f"{name}{s_ext}"
-        h = templates.c_head(name)
-        s = templates.c_src(h_name)
+        h = gum_templates.c_head(name)
+        s = gum_templates.c_src(h_name)
         hp = os.path.join(self.cwd, "src", args["path"])
         sp = os.path.join(self.cwd, "src", args["path"])
         if gum_utils.write_prep(hp, h_name) and gum_utils.write_prep(sp, s_name):
