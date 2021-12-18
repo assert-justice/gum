@@ -26,7 +26,11 @@ I made GUM because CMake is very complicated and ad-hoc and I was too stubborn t
 
 - `-f --full`: Recompile all source files, do not use incremental builds. Not yet implemented, all builds are full builds.
 
-- `--compile_libs`: Recompile all libraries in the deps directory.
+- `--all_libs`: Recompile all libraries in the deps directory.
+
+- `--libs [name*]`: Recompile a subset of libraries.
+
+- `-s --skip`: Skip compiling the main program. Used to only compile libraries.
 
 - `-a --all_targets`: Compile to all configured targets. Not yet implemented.
 
@@ -40,13 +44,17 @@ I made GUM because CMake is very complicated and ad-hoc and I was too stubborn t
 
 ### Install
 
-`install [url]`: Clone a library into the deps folder and configure it.
+`install`: Add a library to the deps folder and configure it.
 
-- `-d -dll`: Configure library as dynamically linked. Static is a default.
+- `--url [url]`: Clone from the following url.
+
+- `--new [name]`: Create a new library with the given name.
+
+- `-d -dll`: Configure library as dynamically linked. Static is a default. Not currently implemented all libraries are static.
 
 - `-m --manual`: Indicates that headers should not be automatically placed in the project's include file. For pesky libraries with specific include instructions.
 
-- `--defer_build`: Indicates that a library should not be built yet. Default is to build on install.
+- `--defer_build`: Indicates that a library should not be built yet. Default is to build on install. Not currently implemented, gum will not build libraries until told to do so explicitly.
 
 ### Add Commit Push
 

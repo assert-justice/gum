@@ -20,7 +20,7 @@ class Gum():
             "c_main": lambda: gum_templates.c_main(args["name"], datetime.date.today()),
             "readme": lambda: gum_templates.readme(args["name"])
         }
-        dirmap = self.dirmaps["project.json"]
+        dirmap = self.dirmaps["create.json"]
         path = os.path.join(self.cwd, args["name"])
         if os.path.exists(path):
             gum_utils.error(f"the project directory '{path}' already exists!")
@@ -35,9 +35,11 @@ class Gum():
         if o_level:
             config["optimization"] = f"-O{o_level}"
         config["options"].append(config.pop("optimization"))
-        for k,v in args.items():
-            config[k] = v
+        # for k,v in args.items():
+        #     config[k] = v
+        config["release"] = args["release"]
         outname = config["name"]
+        os_ = "gnu"
         if gum_utils.get_os() == "win":
             outname += ".exe"
         dest = os.path.join(self.cwd, "bin", "release" if config["release"] else "debug", outname)
@@ -47,13 +49,46 @@ class Gum():
         command = []
         command.append(config["compiler"])
         command += config["options"]
+        command.append("-Iinclude")
         command += ["-o", dest] + files
+        command.append("-Llibs")
+        command += gum_utils.grab_files(os.path.join(self.cwd, "libs"), gum_config.os_lib_extension[config["target"]])
+        if "libs" in config:
+            command += config["libs"]
         return subprocess.run(command).returncode == 0
+    
+    def compile_libs(self, names = None):
+        libs_path = os.path.join(self.cwd, "deps")
+        lib_extension = gum_config.os_lib_extension[self.config["target"]]
+        if not names:
+            names, _ = gum_utils.list_dir(libs_path)
+        for name in names[:]:
+            l_path = os.path.join(libs_path, name)
+            gum_utils.walk_dirmap(self.dirmaps["lib.json"], l_path)
+        for name in names[:]:
+            l_path = os.path.join(libs_path, name)
+            files = gum_utils.grab_files(l_path, lib_extension)
+            for file in files:
+                _, fname = os.path.split()
+
     def run(self, args):
         if self.build(args):
             subprocess.run([self.config["dest"]])
     def install(self, args):
-        pass
+        print(args)
+        if args["name"]:
+            path = os.path.join(self.cwd, "deps", args["name"])
+            if os.path.exists(path):
+                gum_utils.error(f"Cannot create library at '{path}', directory already exists.")
+            gum_utils.walk_dirmap(self.dirmaps["new_lib.json"], path, True)
+            if not args["manual"]:
+                path = os.path.join(self.cwd, "include", args["name"])
+                gum_utils.write_prep(path)
+                os.mkdir(path)
+        elif args["url"]:
+            pass
+        else:
+            gum_utils.error("Install requires either a name or url argument.")
     def acp(self, args):
         message = args["message"]
         commands = [
@@ -84,14 +119,19 @@ class Gum():
             with open(sp, "w") as s_new:
                 h_new.write(h)
                 s_new.write(s)
-    def prime(self, release_mode = False, target = "gnu"):
+    def prime(self, release_mode = False, target = None):
         # validate file structure
         # set config field
-        dirmap = self.dirmaps["project.json"]
+        if not target:
+            target = gum_utils.get_os()
+            #print("target", target)
+        dirmap = self.dirmaps["validate.json"]
         gum_utils.walk_dirmap(dirmap, self.cwd)
         with open(os.path.join(self.cwd, "gum.toml")) as tom:
             config = toml.load(tom)
             self.config = gum_utils.config_build(config, release_mode, target)
+            self.config["target"] = target
+            print(self.config)
     def load_files(self):
         gumpath = gum_utils.get_gumpath()
         dirmaps = {}

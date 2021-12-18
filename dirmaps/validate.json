@@ -1,0 +1,11 @@
+{
+    "src":{},
+    "bin":{
+        "debug":{},
+        "release":{}
+    },
+    "include":{},
+    "libs":{},
+    "deps":{},
+    "gum.toml":"config"
+}

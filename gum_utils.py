@@ -27,17 +27,16 @@ def get_gumpath():
     return h
 
 def get_os():
-    lookup = {"Windows":"win"}
     val = platform.system()
-    if val in lookup:
-        return lookup[val]
+    if val in gum_config.os_lookup:
+        return gum_config.os_lookup[val]
 
 def walk_dirmap(dirmap, path, create = False, templates = None):
     # Walk a file structure. If create is true it will create directories and templates as needed.
     # If false and a directory or file is not found will throw error.
     if not templates:
         templates = {}
-    if create:
+    if create and not os.path.exists(path):
         os.mkdir(path)
     for key, value in dirmap.items():
         p = os.path.join(path, key)
@@ -107,13 +106,14 @@ def write_prep(path, fname = None):
             error(f"Path '{path}' exists but is not a file.")
     return True
 
+def combine_config(src, dest):
+    for k,v in src.items():
+        if k in dest and isinstance(dest[k], list):
+            dest[k] += v
+        else:
+            dest[k] = v
+
 def config_build(src, release_mode = False, target = "gnu"):
-    def add(src, dest):
-        for k,v in src.items():
-            if k in dest and isinstance(dest[k], list):
-                dest[k] += v
-            else:
-                dest[k] = v
     config = {}
     add_queue = []
     if "defaults" in src:
@@ -131,8 +131,8 @@ def config_build(src, release_mode = False, target = "gnu"):
             val = src.pop(m)
             if m == mode:
                 add_queue.append(val)
-    add(src, config)
+    combine_config(src, config)
     add_queue = list(map(lambda d: config_build(d, release_mode, target), add_queue))
     for d in add_queue:
-        add(d, config)
+        combine_config(d, config)
     return config
