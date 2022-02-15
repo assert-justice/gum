@@ -1,4 +1,4 @@
-import os,sys, subprocess, json, datetime
+import os, subprocess, json, datetime
 import toml
 import gum_parse, gum_utils, gum_config, gum_templates
 
@@ -11,7 +11,7 @@ class Gum():
         self.load_files()
         # Calls the parser.
         gum_parse.parse(self.create, self.build, self.run, self.install, self.acp, self.add)
-        pass
+
     def create(self, args):
         print(args)
         temps = {
@@ -27,7 +27,7 @@ class Gum():
         gum_utils.walk_dirmap(dirmap, path, True, temps)
         if args["vcs"] == "git":
             subprocess.run("git init".split(), cwd=os.path.join(self.cwd, args["name"]))
-        pass
+
     def build(self, args):
         self.prime(args["release"], args["target"])
         config = self.config
@@ -74,21 +74,22 @@ class Gum():
     def run(self, args):
         if self.build(args):
             subprocess.run([self.config["dest"]])
+
     def install(self, args):
         print(args)
         if args["name"]:
             path = os.path.join(self.cwd, "deps", args["name"])
             if os.path.exists(path):
                 gum_utils.error(f"Cannot create library at '{path}', directory already exists.")
-            gum_utils.walk_dirmap(self.dirmaps["new_lib.json"], path, True)
+            gum_utils.walk_dirmap(self.dirmaps["lib.json"], path, True)
             if not args["manual"]:
                 path = os.path.join(self.cwd, "include", args["name"])
                 gum_utils.write_prep(path)
-                os.mkdir(path)
         elif args["url"]:
             pass
         else:
             gum_utils.error("Install requires either a name or url argument.")
+
     def acp(self, args):
         message = args["message"]
         commands = [
@@ -98,8 +99,10 @@ class Gum():
         ]
         for c in commands:
             subprocess.run(c)
+
     def add(self, args):
         self.prime()
+        print(args)
         name = args["name"]
         h_ext = self.config["header"]
         s_ext = self.config["src"]
@@ -107,8 +110,15 @@ class Gum():
         s_name = f"{name}{s_ext}"
         h = gum_templates.c_head(name)
         s = gum_templates.c_src(h_name)
-        hp = os.path.join(self.cwd, "src", args["path"])
-        sp = os.path.join(self.cwd, "src", args["path"])
+        if not args["lib"]:
+            hp = os.path.join(self.cwd, "src", args["path"])
+            sp = os.path.join(self.cwd, "src", args["path"])
+        else:
+            libname = args["lib"]
+            dirmap = self.dirmaps["lib.json"]
+            gum_utils.walk_dirmap(dirmap, os.path.join(self.cwd, "deps", libname))
+            hp = os.path.join(self.cwd, "deps", libname, "include", args["path"])
+            sp = os.path.join(self.cwd, "deps", libname, "src", args["path"])
         if gum_utils.write_prep(hp, h_name) and gum_utils.write_prep(sp, s_name):
             pass
         else:
@@ -119,6 +129,7 @@ class Gum():
             with open(sp, "w") as s_new:
                 h_new.write(h)
                 s_new.write(s)
+
     def prime(self, release_mode = False, target = None):
         # validate file structure
         # set config field
@@ -132,6 +143,7 @@ class Gum():
             self.config = gum_utils.config_build(config, release_mode, target)
             self.config["target"] = target
             print(self.config)
+
     def load_files(self):
         gumpath = gum_utils.get_gumpath()
         dirmaps = {}

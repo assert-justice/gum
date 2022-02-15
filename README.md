@@ -34,7 +34,7 @@ I made GUM because CMake is very complicated and ad-hoc and I was too stubborn t
 
 - `-a --all_targets`: Compile to all configured targets. Not yet implemented.
 
-- `--win --posx --gnu`: Specify compile target if different than current machine. Not yet implemented.
+- `--win --posx --gnu`: Specify compile target if different than current environment. Not yet implemented.
 
 - `-o`: Override the default optimization level.
 
@@ -46,7 +46,7 @@ I made GUM because CMake is very complicated and ad-hoc and I was too stubborn t
 
 `install`: Add a library to the deps folder and configure it.
 
-- `--url [url]`: Clone from the following url.
+- `--url [url]`: Clone from the following url. Not yet implemented.
 
 - `--new [name]`: Create a new library with the given name.
 
@@ -58,8 +58,11 @@ I made GUM because CMake is very complicated and ad-hoc and I was too stubborn t
 
 ### Add Commit Push
 
-`acp [str]`: adds all changes, commits them with the given message, and pushes it to configured repo.
+`acp [str]`: Adds all changes, commits them with the given message, and pushes it to configured repo.
 
 ### Add
 
-`add [name]`: adds a matching header / source file at `src/name`
+`add [path] [name]`: Adds a matching header / source file at `src/path/name`
+
+- `--lib [name]`: Specifies you want to add the files to the src folder of a library in the deps folder.
+- `--template [name]`:Specify a template to use when creating the files.
