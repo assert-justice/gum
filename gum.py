@@ -1,4 +1,4 @@
-import os, subprocess, json, datetime
+import os, subprocess, json, datetime, shutil
 import toml
 import gum_parse, gum_utils, gum_config, gum_templates
 
@@ -9,11 +9,12 @@ class Gum():
         self.cwd = os.getcwd()
         # Load templates and default config.
         self.load_files()
-        # Calls the parser.
+        # Calls the argument parser.
         gum_parse.parse(self.create, self.build, self.run, self.install, self.acp, self.add)
 
     def create(self, args):
-        print(args)
+        # Create a new project
+        # Create expected templates
         temps = {
             "config": lambda: gum_templates.config(args["name"], args["compiler"], args["language"], args["header"], args["src"]),
             "gitignore": gum_templates.gitignore,
@@ -27,7 +28,6 @@ class Gum():
         gum_utils.walk_dirmap(dirmap, path, True, temps)
         if args["vcs"] == "git":
             subprocess.run("git init".split(), cwd=os.path.join(self.cwd, args["name"]))
-
     def build(self, args):
         self.prime(args["release"], args["target"])
         config = self.config
@@ -35,41 +35,58 @@ class Gum():
         if o_level:
             config["optimization"] = f"-O{o_level}"
         config["options"].append(config.pop("optimization"))
-        # for k,v in args.items():
-        #     config[k] = v
         config["release"] = args["release"]
+        if args["all_libs"]:
+            if not self.compile_libs():
+                return False
+        if args["skip"]:
+            return
         outname = config["name"]
-        os_ = "gnu"
         if gum_utils.get_os() == "win":
             outname += ".exe"
         dest = os.path.join(self.cwd, "bin", "release" if config["release"] else "debug", outname)
         config["dest"] = dest
         self.config = config
         files = gum_utils.grab_files(os.path.join(self.cwd, "src"), config["src"])
-        command = []
-        command.append(config["compiler"])
+        command = [config["compiler"]]
         command += config["options"]
         command.append("-Iinclude")
         command += ["-o", dest] + files
         command.append("-Llibs")
-        command += gum_utils.grab_files(os.path.join(self.cwd, "libs"), gum_config.os_lib_extension[config["target"]])
+        libfiles = gum_utils.grab_files(os.path.join(self.cwd, "libs"), gum_config.os_lib_extension[config["target"]])
+        command += libfiles #["-l" + file for file in libfiles]
         if "libs" in config:
             command += config["libs"]
+        print(" ".join(command))
         return subprocess.run(command).returncode == 0
     
     def compile_libs(self, names = None):
-        libs_path = os.path.join(self.cwd, "deps")
-        lib_extension = gum_config.os_lib_extension[self.config["target"]]
+        deps_path = os.path.join(self.cwd, "deps")
         if not names:
-            names, _ = gum_utils.list_dir(libs_path)
-        for name in names[:]:
-            l_path = os.path.join(libs_path, name)
-            gum_utils.walk_dirmap(self.dirmaps["lib.json"], l_path)
-        for name in names[:]:
-            l_path = os.path.join(libs_path, name)
-            files = gum_utils.grab_files(l_path, lib_extension)
-            for file in files:
-                _, fname = os.path.split()
+            dirs, _ = gum_utils.list_dir(deps_path)
+            names = [dir.name for dir in dirs]
+        for name in names[:1]:
+            d_path = os.path.join(deps_path, name)
+            # get all the source files in the library and compile them in place into .o files
+            files = gum_utils.grab_files(os.path.join(d_path, "src"), self.config["src"])
+            #print(files)
+            command = [self.config["compiler"],  "-c"]
+            command += files
+            if subprocess.run(command, cwd=os.path.join(d_path, "gum")).returncode != 0:
+                return False
+            # now we need to find them all
+            o_files = gum_utils.grab_files(d_path, ".o")
+            # TODO: figure out what other compilers use to link static libraries
+            lib_path = os.path.join(self.cwd, "libs", name) + gum_config.os_lib_extension[self.config["target"]]
+            command = ["ar", "rs", lib_path] + o_files
+            if subprocess.run(command).returncode != 0: # leaves .o files in the gum temporary directory
+                return False
+            # copy contents of include folder
+            include_path = os.path.join(self.cwd, "include", name)
+            if os.path.exists(include_path):
+                shutil.rmtree(include_path)
+            shutil.copytree(os.path.join(d_path, "include"), include_path)
+        return True
 
     def run(self, args):
         if self.build(args):
@@ -85,6 +102,7 @@ class Gum():
             if not args["manual"]:
                 path = os.path.join(self.cwd, "include", args["name"])
                 gum_utils.write_prep(path)
+                #os.mkdir(path)
         elif args["url"]:
             pass
         else:

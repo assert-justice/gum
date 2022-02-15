@@ -40,7 +40,7 @@ I made GUM because CMake is very complicated and ad-hoc and I was too stubborn t
 
 ### Run
 
-`run`: Builds and runs the project assuming no errors or warnings. All commands work identically.
+`run`: Builds and runs the project assuming no errors or warnings. All commands work identically to build.
 
 ### Install
 
