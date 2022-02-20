@@ -69,8 +69,8 @@ class Gum():
             d_path = os.path.join(deps_path, name)
             # get all the source files in the library and compile them in place into .o files
             files = gum_utils.grab_files(os.path.join(d_path, "src"), self.config["src"])
-            #print(files)
-            command = [self.config["compiler"],  "-c"]
+            print(files)
+            command = [self.config["compiler"],  "-c", "-I../include"]
             command += files
             if subprocess.run(command, cwd=os.path.join(d_path, "gum")).returncode != 0:
                 return False
@@ -91,14 +91,37 @@ class Gum():
     def run(self, args):
         if self.build(args):
             subprocess.run([self.config["dest"]])
+    
+    def add_src(self, temp, h_path, s_path, name):
+        h_ext = self.config["header"]
+        s_ext = self.config["src"]
+        h_name = f"{name}{h_ext}"
+        s_name = f"{name}{s_ext}"
+        # TODO: support other templates
+        h = gum_templates.c_head(name)
+        s = gum_templates.c_src(h_name)
+        #h_path = os.path.join(h_path, h_name)
+        #s_path = os.path.join(s_path, s_name)
+        for path, name, cont in zip((h_path, s_path,), (h_name, s_name,), (h,s,)):
+            gum_utils.write_prep(path, name)
+            path = os.path.join(path, name)
+            with open(path, 'w') as f:
+                f.write(cont)
+        return h_path, s_path
+        
 
     def install(self, args):
         print(args)
+        self.prime()
         if args["name"]:
             path = os.path.join(self.cwd, "deps", args["name"])
             if os.path.exists(path):
                 gum_utils.error(f"Cannot create library at '{path}', directory already exists.")
             gum_utils.walk_dirmap(self.dirmaps["lib.json"], path, True)
+            h_path = os.path.join(path, "include")
+            s_path = os.path.join(path, "src")
+            self.add_src("base", h_path, s_path, args["name"])
+            
             if not args["manual"]:
                 path = os.path.join(self.cwd, "include", args["name"])
                 gum_utils.write_prep(path)
@@ -121,32 +144,43 @@ class Gum():
     def add(self, args):
         self.prime()
         print(args)
+        path = args["path"]
+        lib = args["lib"]
         name = args["name"]
-        h_ext = self.config["header"]
-        s_ext = self.config["src"]
-        h_name = f"{name}{h_ext}"
-        s_name = f"{name}{s_ext}"
-        h = gum_templates.c_head(name)
-        s = gum_templates.c_src(h_name)
-        if not args["lib"]:
-            hp = os.path.join(self.cwd, "src", args["path"])
-            sp = os.path.join(self.cwd, "src", args["path"])
+        if not lib:
+            path = os.path.join(self.cwd, "src", path)
         else:
-            libname = args["lib"]
-            dirmap = self.dirmaps["lib.json"]
-            gum_utils.walk_dirmap(dirmap, os.path.join(self.cwd, "deps", libname))
-            hp = os.path.join(self.cwd, "deps", libname, "include", args["path"])
-            sp = os.path.join(self.cwd, "deps", libname, "src", args["path"])
-        if gum_utils.write_prep(hp, h_name) and gum_utils.write_prep(sp, s_name):
-            pass
-        else:
-            return
-        hp = os.path.join(hp, h_name)
-        sp = os.path.join(sp, s_name)
-        with open(hp, "w") as h_new:
-            with open(sp, "w") as s_new:
-                h_new.write(h)
-                s_new.write(s)
+            # TODO: check if lib exists
+            path = os.path.join(self.cwd, "deps", lib, "src", path)
+        self.add_src("base", path, path, name)
+        # name = args["name"]
+        # h_ext = self.config["header"]
+        # s_ext = self.config["src"]
+        # h_name = f"{name}{h_ext}"
+        # s_name = f"{name}{s_ext}"
+        # h = gum_templates.c_head(name)
+        # s = gum_templates.c_src(h_name)
+        # if not args["lib"]:
+        #     hp = os.path.join(self.cwd, "src", args["path"])
+        #     #sp = os.path.join(self.cwd, "src", args["path"])
+        #     sp = hp
+        # else:
+        #     libname = args["lib"]
+        #     dirmap = self.dirmaps["lib.json"]
+        #     gum_utils.walk_dirmap(dirmap, os.path.join(self.cwd, "deps", libname))
+        #     hp = os.path.join(self.cwd, "deps", libname, "src", args["path"])
+        #     sp = hp
+        #     #sp = os.path.join(self.cwd, "deps", libname, "src", args["path"])
+        # if gum_utils.write_prep(hp, h_name) and gum_utils.write_prep(sp, s_name):
+        #     pass
+        # else:
+        #     return
+        # hp = os.path.join(hp, h_name)
+        # sp = os.path.join(sp, s_name)
+        # with open(hp, "w") as h_new:
+        #     with open(sp, "w") as s_new:
+        #         h_new.write(h)
+        #         s_new.write(s)
 
     def prime(self, release_mode = False, target = None):
         # validate file structure
