@@ -22,7 +22,7 @@ def readme(name):
 '''
 
 def gitignore():
-    return '''.gitignore
+    return '''
 *.exe
 *.a
 *.o
