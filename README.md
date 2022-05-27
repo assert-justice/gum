@@ -34,7 +34,7 @@ I made GUM because CMake is very complicated and ad-hoc and I was too stubborn t
 
 - `-a --all_targets`: Compile to all configured targets. Not yet implemented.
 
-- `--win --posx --gnu`: Specify compile target if different than current machine. Not yet implemented.
+- `--win --posx --gnu`: Specify compile target if different than current environment. Not yet implemented.
 
 - `-o`: Override the default optimization level.
 
@@ -52,14 +52,17 @@ I made GUM because CMake is very complicated and ad-hoc and I was too stubborn t
 
 - `-d -dll`: Configure library as dynamically linked. Static is a default. Not currently implemented all libraries are static.
 
-- `-m --manual`: Indicates that headers should not be automatically placed in the project's include file. For pesky libraries with specific include instructions.
+- `-m --manual`: Indicates that headers should not be automatically placed in the project's include file. For pesky libraries with specific include instructions. Not yet implemented.
 
 - `--defer_build`: Indicates that a library should not be built yet. Default is to build on install. Not currently implemented, gum will not build libraries until told to do so explicitly.
 
 ### Add Commit Push
 
-`acp [str]`: adds all changes, commits them with the given message, and pushes it to configured repo.
+`acp [str]`: Adds all changes, commits them with the given message, and pushes it to configured repo.
 
 ### Add
 
-`add [name]`: adds a matching header / source file at `src/name`
+`add [path] [name]`: Adds a matching header / source file at `src/path/name`
+
+- `--lib [name]`: Specifies you want to add the files to the src folder of a library in the deps folder.
+- `--template [name]`:Specify a template to use when creating the files.

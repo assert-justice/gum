@@ -22,10 +22,14 @@ def readme(name):
 '''
 
 def gitignore():
-    return '''.gitignore
-/bin/debug/*
-/bin/release/*
-/libs/*
+    return '''
+*.exe
+*.a
+*.o
+*.s
+*.lib
+include/*
+.vscode/
 '''
 
 def c_main(name, time):
@@ -48,6 +52,5 @@ def c_head(name):
 
 def c_src(name):
     return f'''#include "{name}"
-
 
 '''

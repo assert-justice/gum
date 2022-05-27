@@ -51,10 +51,12 @@ def parse(create, build, run, install, acp, add):
     acp_parser.add_argument("message")
     acp_parser.set_defaults(func=acp)
 
-    add_parser = subparsers.add_parser("add", help="adds a matching header / source file at `src/name`")
+    add_parser = subparsers.add_parser("add", help="Adds a matching header / source file at `src/path/name`")
     add_parser.set_defaults(func=add)
     add_parser.add_argument("path")
     add_parser.add_argument("name")
+    add_parser.add_argument("--lib", help="Specifies you want to add the files to the src folder of a library in the deps folder.")
+    add_parser.add_argument("--template", help="Specify a template to use when creating the files.")
     args = parser.parse_args()
     out = args.__dict__.copy()
     out.pop("func")
