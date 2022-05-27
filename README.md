@@ -48,11 +48,11 @@ I made GUM because CMake is very complicated and ad-hoc and I was too stubborn t
 
 - `--url [url]`: Clone from the following url. Not yet implemented.
 
-- `--new [name]`: Create a new library with the given name.
+- `--name [name]`: Create a new library with the given name.
 
 - `-d -dll`: Configure library as dynamically linked. Static is a default. Not currently implemented all libraries are static.
 
-- `-m --manual`: Indicates that headers should not be automatically placed in the project's include file. For pesky libraries with specific include instructions.
+- `-m --manual`: Indicates that headers should not be automatically placed in the project's include file. For pesky libraries with specific include instructions. Not yet implemented.
 
 - `--defer_build`: Indicates that a library should not be built yet. Default is to build on install. Not currently implemented, gum will not build libraries until told to do so explicitly.
 

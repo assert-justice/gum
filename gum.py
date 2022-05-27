@@ -30,10 +30,15 @@ class Gum():
             subprocess.run("git init".split(), cwd=os.path.join(self.cwd, args["name"]))
     def build(self, args):
         self.prime(args["release"], args["target"])
+        # TODO: actually implement scripts, not just this silly hack
+        if os.path.exists("scripts/prebuild.py"):
+            subprocess.run(["python", "scripts/prebuild.py"])
         config = self.config
         o_level = args.pop('o')
         if o_level:
             config["optimization"] = f"-O{o_level}"
+        # options : list = config["options"]
+        # options.insert(0, config.pop("optimization"))
         config["options"].append(config.pop("optimization"))
         config["release"] = args["release"]
         if args["all_libs"]:
@@ -54,6 +59,7 @@ class Gum():
         command += ["-o", dest] + files
         command.append("-Llibs")
         libfiles = gum_utils.grab_files(os.path.join(self.cwd, "libs"), gum_config.os_lib_extension[config["target"]])
+        libfiles += config["libs"]
         command += libfiles #["-l" + file for file in libfiles]
         if "libs" in config:
             command += config["libs"]
@@ -67,9 +73,22 @@ class Gum():
             names = [dir.name for dir in dirs]
         for name in names[:1]:
             d_path = os.path.join(deps_path, name)
-            # get all the source files in the library and compile them in place into .o files
+            # tries to grab library specific config
+            config_path = os.path.join(d_path, "gum_library.toml")
+            config = {}
+            if os.path.exists(config_path):
+                with open(config_path) as f:
+                    config = toml.loads(f.read())
+            skip_list = []
+            if "os_specific" in config:
+                for key, lis, in config["os_specific"].items():
+                    if key != self.config["target"]:
+                        skip_list.extend(lis)
+            # get all the source files in the library and compiles them in place into .o files
             files = gum_utils.grab_files(os.path.join(d_path, "src"), self.config["src"])
-            print(files)
+            files = [file for file in files if os.path.split(file)[1] not in skip_list]
+            # print(files)
+            # return
             command = [self.config["compiler"],  "-c", "-I../include"]
             command += files
             if subprocess.run(command, cwd=os.path.join(d_path, "gum")).returncode != 0:
@@ -82,15 +101,16 @@ class Gum():
             if subprocess.run(command).returncode != 0: # leaves .o files in the gum temporary directory
                 return False
             # copy contents of include folder
-            include_path = os.path.join(self.cwd, "include", name)
-            if os.path.exists(include_path):
-                shutil.rmtree(include_path)
-            shutil.copytree(os.path.join(d_path, "include"), include_path)
+            # include_path = os.path.join(self.cwd, "include", name)
+            # if os.path.exists(include_path):
+            #     shutil.rmtree(include_path)
+            # shutil.copytree(os.path.join(d_path, "include"), include_path)
         return True
 
     def run(self, args):
         if self.build(args):
-            subprocess.run([self.config["dest"]])
+            path, _ = os.path.split(self.config["dest"])
+            subprocess.run(self.config["dest"], cwd=path)
     
     def add_src(self, temp, h_path, s_path, name):
         h_ext = self.config["header"]

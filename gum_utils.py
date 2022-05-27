@@ -42,8 +42,16 @@ def walk_dirmap(dirmap, path, create = False, templates = None):
         p = os.path.join(path, key)
         if not create:
             if not os.path.exists(p):
-                error(f"path '{path}' does not exist")
-            continue
+                if key in ["bin", "release", "debug", "include", "libs", "deps"]:
+                    # These directories are often empty and therefore not saved by git
+                    # If they aren't present create them. This is an imperfect solution
+                    # TODO: come up with a better solution.
+                    os.mkdir(p)
+                    pass
+                else:
+                    error(f"path '{p}' does not exist")
+            else:
+                continue
         if isinstance(value, str):
             txt = value
             if value in templates:
