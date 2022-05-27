@@ -46,9 +46,9 @@ I made GUM because CMake is very complicated and ad-hoc and I was too stubborn t
 
 `install`: Add a library to the deps folder and configure it.
 
-- `--url [url]`: Clone from the following url.
+- `--url [url]`: Clone from the following url. Not yet implemented.
 
-- `--new [name]`: Create a new library with the given name.
+- `--name [name]`: Create a new library with the given name.
 
 - `-d -dll`: Configure library as dynamically linked. Static is a default. Not currently implemented all libraries are static.
 
