@@ -44,14 +44,17 @@ class Gum():
         if args["all_libs"]:
             if not self.compile_libs():
                 return False
-        if args["skip"]:
-            return
+        elif args["libs"]:
+            if not self.compile_libs(args["libs"]):
+                return False
         outname = config["name"]
         if gum_utils.get_os() == "win":
             outname += ".exe"
         dest = os.path.join(self.cwd, "bin", "release" if config["release"] else "debug", outname)
         config["dest"] = dest
         self.config = config
+        if args["skip"]:
+            return True
         files = gum_utils.grab_files(os.path.join(self.cwd, "src"), config["src"])
         command = [config["compiler"]]
         command += config["options"]
@@ -63,7 +66,7 @@ class Gum():
         command += libfiles #["-l" + file for file in libfiles]
         if "libs" in config:
             command += config["libs"]
-        print(" ".join(command))
+        # print(" ".join(command))
         return subprocess.run(command).returncode == 0
     
     def compile_libs(self, names = None):
@@ -71,7 +74,7 @@ class Gum():
         if not names:
             dirs, _ = gum_utils.list_dir(deps_path)
             names = [dir.name for dir in dirs]
-        for name in names[:1]:
+        for name in names:
             d_path = os.path.join(deps_path, name)
             # tries to grab library specific config
             config_path = os.path.join(d_path, "gum_library.toml")
@@ -86,12 +89,17 @@ class Gum():
                         skip_list.extend(lis)
             # get all the source files in the library and compiles them in place into .o files
             files = gum_utils.grab_files(os.path.join(d_path, "src"), self.config["src"])
+            # files = gum_utils.grab_files(os.path.join(d_path, "src"), ".cpp")
+            src_path = os.path.join(d_path, "src")
+            # print(src_path)
             files = [file for file in files if os.path.split(file)[1] not in skip_list]
-            # print(files)
             # return
-            command = [self.config["compiler"],  "-c", "-I../include"]
+            command = [self.config["compiler"],  "-c", f"-I{d_path}/include", f"-I{src_path}"]
+            # command = ["g++",  "-c", f"-I{d_path}/include", f"-I{src_path}"]
             command += files
+            # print(command)
             if subprocess.run(command, cwd=os.path.join(d_path, "gum")).returncode != 0:
+            # if subprocess.run(command, cwd=src_path).returncode != 0:
                 return False
             # now we need to find them all
             o_files = gum_utils.grab_files(d_path, ".o")
@@ -120,8 +128,6 @@ class Gum():
         # TODO: support other templates
         h = gum_templates.c_head(name)
         s = gum_templates.c_src(h_name)
-        #h_path = os.path.join(h_path, h_name)
-        #s_path = os.path.join(s_path, s_name)
         for path, name, cont in zip((h_path, s_path,), (h_name, s_name,), (h,s,)):
             gum_utils.write_prep(path, name)
             path = os.path.join(path, name)
@@ -131,7 +137,7 @@ class Gum():
         
 
     def install(self, args):
-        print(args)
+        # print(args)
         self.prime()
         if args["name"]:
             path = os.path.join(self.cwd, "deps", args["name"])
@@ -163,7 +169,7 @@ class Gum():
 
     def add(self, args):
         self.prime()
-        print(args)
+        # print(args)
         path = args["path"]
         lib = args["lib"]
         name = args["name"]
@@ -207,14 +213,13 @@ class Gum():
         # set config field
         if not target:
             target = gum_utils.get_os()
-            #print("target", target)
         dirmap = self.dirmaps["validate.json"]
         gum_utils.walk_dirmap(dirmap, self.cwd)
         with open(os.path.join(self.cwd, "gum.toml")) as tom:
             config = toml.load(tom)
             self.config = gum_utils.config_build(config, release_mode, target)
             self.config["target"] = target
-            print(self.config)
+            # print(self.config)
 
     def load_files(self):
         gumpath = gum_utils.get_gumpath()
